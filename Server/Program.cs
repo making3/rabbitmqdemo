@@ -114,7 +114,7 @@ namespace Server
 
                 if (requireAcknowledgement)
                 {
-                    consumer.Queue.Dequeue();
+                    channel.BasicAck(eventArgs.DeliveryTag, false);
                 }
             }
         }
