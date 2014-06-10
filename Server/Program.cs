@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -17,29 +18,30 @@ namespace Server
                 {
                     // First argument should be the queue or routing key.
                     string input = args.Length > 0 ? args[0] : string.Empty;
+                    int sleep = args.Length > 1 ? int.Parse(args[1]) : -1;
                     //startBasicQueueConsumer(channel, input);
                     //startFanoutConsumer(channel, input);
                     //startRoutingConsumer(channel, input);
                     //startTopicConsumer(channel, input);
 
-                    startBasicQueueConsumer(channel, input, true);
+                    startBasicQueueConsumer(channel, input, true, sleep);
                 }
             }
         }
 
         private static void startBasicQueueConsumer(IModel channel, string queue)
         {
-            startBasicQueueConsumer(channel, queue);
+            startBasicQueueConsumer(channel, queue, false, -1);
         }
 
-        private static void startBasicQueueConsumer(IModel channel, string queue, bool requireAcknowledgement)
+        private static void startBasicQueueConsumer(IModel channel, string queue, bool requireAcknowledgement, int sleep)
         {
             if (queue == string.Empty)
                 queue = "Basic";
 
             channel.QueueDeclare(queue, false, false, false, null);
 
-            startConsuming(channel, queue, requireAcknowledgement);
+            startConsuming(channel, queue, requireAcknowledgement, sleep);
         }
 
         private static void startFanoutConsumer(IModel channel)
@@ -93,10 +95,10 @@ namespace Server
 
         private static void startConsuming(IModel channel, string queue)
         {
-            startBasicQueueConsumer(channel, queue, false);
+            startConsuming(channel, queue, false, -1);
         }
 
-        private static void startConsuming(IModel channel, string queue, bool requireAcknowledgement)
+        private static void startConsuming(IModel channel, string queue, bool requireAcknowledgement, int sleep)
         {
             var consumer = new QueueingBasicConsumer(channel);
             channel.BasicConsume(queue, !requireAcknowledgement, consumer);
@@ -114,6 +116,8 @@ namespace Server
 
                 if (requireAcknowledgement)
                 {
+                    if (sleep > 0)
+                        Thread.Sleep(sleep * 1000);
                     channel.BasicAck(eventArgs.DeliveryTag, false);
                 }
             }

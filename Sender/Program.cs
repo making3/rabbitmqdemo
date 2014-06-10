@@ -13,10 +13,11 @@ namespace Sender
             {
                 using (var channel = connection.CreateModel())
                 {
+
+                    sendBasicToQueue(channel);
                     //sendToFanoutExchange(channel);
-                    //sendBasicToQueue(channel);
                     //sendToRoutingExchange(channel);
-                    sendToTopicExchange(channel);
+                    //sendToTopicExchange(channel);
                 }
             }
         }
